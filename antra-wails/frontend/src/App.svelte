@@ -928,6 +928,10 @@
     status: 'resolving' | 'downloading' | 'done' | 'failed' | 'skipped',
     retrying?: boolean,
     trackData?: FailedTrackPayload,
+    // The backend's verdict on the downloaded result (see "Explicit versions").
+    explicitStatus?: ExplicitStatus,
+    // The song's own explicit flag from the track list, shown until a verdict arrives.
+    listedExplicit?: boolean,
   }> = {};
   let currentPlaylistTrackKeysByIndex: Record<number, string> = {};
   let currentPlaylistTrackCount = 0;
@@ -994,6 +998,97 @@
       clearInterval(intervalId);
       delete (activeTracks[trackName] as any)._intervalId;
     }
+  }
+
+  // ── Explicit versions ───────────────────────────────────────────────────────
+  // The backend decides each song's status from the version that was wanted and
+  // the result it chose; the interface only displays it. An older backend sends
+  // no status, and then no badge is shown rather than one guessed from the
+  // requested song, which could claim a version the user did not get.
+  type ExplicitStatus = 'explicit' | 'clean_edit' | 'not_explicit' | 'unknown';
+
+  // Each badge carries its meaning as text, so colour is never the only signal.
+  const EXPLICIT_BADGES: Record<ExplicitStatus, { text: string, kind: string, label: string } | null> = {
+    explicit:     { text: 'E', kind: 'is-explicit', label: 'Explicit version' },
+    clean_edit:   { text: 'Clean edit', kind: 'is-clean-edit', label: 'Clean edit: this song has an explicit version, but it could not be found' },
+    not_explicit: null,
+    unknown:      { text: '?', kind: 'is-unknown', label: "Couldn't tell whether this is the explicit version — the source doesn't say, or the explicit lookup failed" },
+  };
+
+  function readExplicitStatus(value: unknown): ExplicitStatus | undefined {
+    return typeof value === 'string' && Object.prototype.hasOwnProperty.call(EXPLICIT_BADGES, value)
+      ? value as ExplicitStatus
+      : undefined;
+  }
+
+  // Only a status an event actually carries replaces the stored one, so an
+  // event without it (a download attempt, or an older backend) leaves the
+  // badge on the row.
+  function explicitStatusPatch(data: any): { explicitStatus?: ExplicitStatus } {
+    const status = readExplicitStatus(data?.explicit_status);
+    return status ? { explicitStatus: status } : {};
+  }
+
+  interface ExplicitSummary {
+    line: string,
+    cleanEdits: { key: string, title: string, artist: string }[],
+  }
+  let explicitSummary: ExplicitSummary | null = null;
+  let cleanEditsExpanded = false;
+  // A short list of clean edits starts open; a longer one starts folded, since
+  // the panel takes its height from the track list above it.
+  const CLEAN_EDITS_SHOWN_OPEN = 3;
+
+  // Counts only songs saved in this run: a song already in the library was
+  // not chosen now, and a failed one has no file to describe.
+  function summariseExplicitStatuses(): ExplicitSummary | null {
+    const counts: Record<ExplicitStatus, number> = { explicit: 0, clean_edit: 0, not_explicit: 0, unknown: 0 };
+    const cleanEdits: ExplicitSummary['cleanEdits'] = [];
+    let counted = 0;
+    for (const key of trackOrder) {
+      const state = activeTracks[key];
+      if (state?.status !== 'done' || !state.explicitStatus) continue;
+      counts[state.explicitStatus]++;
+      counted++;
+      if (state.explicitStatus === 'clean_edit') {
+        const td = state.trackData;
+        cleanEdits.push({
+          key,
+          title: td?.title || trackLabels[key] || key,
+          artist: Array.isArray(td?.artists) ? td.artists.join(', ') : '',
+        });
+      }
+    }
+    if (counted === 0) return null;
+    const parts = [
+      counts.explicit ? `${counts.explicit} explicit` : '',
+      counts.not_explicit ? `${counts.not_explicit} no explicit version` : '',
+      counts.clean_edit ? `${counts.clean_edit} clean edit${counts.clean_edit === 1 ? '' : 's'}` : '',
+      counts.unknown ? `${counts.unknown} unknown` : '',
+    ].filter(Boolean);
+    return { line: parts.join(' · '), cleanEdits };
+  }
+
+  // Runs when a download process ends. The panel always reflects the whole
+  // list, so a retried song joins the count; the log gets the summary only once
+  // the retry queue is empty, so "Retry All" does not repeat it per song.
+  function finishExplicitSummary() {
+    const firstShowing = explicitSummary === null;
+    explicitSummary = summariseExplicitStatuses();
+    if (!explicitSummary) return;
+    // Only the first showing picks the fold, so a retry does not undo the
+    // user's own choice.
+    if (firstShowing) cleanEditsExpanded = explicitSummary.cleanEdits.length <= CLEAN_EDITS_SHOWN_OPEN;
+    if (retryQueue.length > 0) return;
+    addLog('info', `Explicit versions: ${explicitSummary.line}`);
+    for (const edit of explicitSummary.cleanEdits) {
+      addLog('warning', `Clean edit: ${edit.title}${edit.artist ? ` — ${edit.artist}` : ''}`);
+    }
+  }
+
+  function resetExplicitSummary() {
+    explicitSummary = null;
+    cleanEditsExpanded = false;
   }
 
   onMount(async () => {
@@ -1394,7 +1489,7 @@
           seen.add(rowKey);
           newTracks.push(rowKey);
           if (!activeTracks[rowKey]) {
-            activeTracks[rowKey] = { mode: 'status', text: 'Waiting...', status: 'resolving' };
+            activeTracks[rowKey] = { mode: 'status', text: 'Waiting...', status: 'resolving', listedExplicit: t.explicit === true };
           }
         }
       });
@@ -1421,7 +1516,7 @@
           seen2.add(rowKey);
           newTracks2.push(rowKey);
           if (!activeTracks[rowKey]) {
-            activeTracks[rowKey] = { mode: 'status', text: 'Waiting...', status: 'resolving' };
+            activeTracks[rowKey] = { mode: 'status', text: 'Waiting...', status: 'resolving', listedExplicit: t.explicit === true };
           }
         }
       });
@@ -1448,12 +1543,15 @@
         dismissedFailures = new Set();
         retryQueue = [];
         retryQueueTotal = 0;
+        resetExplicitSummary();
         addLog('warning', '■ Library sync stopped');
       } else if (payload.status === 'failed') {
         addLog('error', '✖ Library sync stopped with errors');
+        finishExplicitSummary();
         if (retryQueue.length > 0) { processRetryQueue(); }
       } else {
         addLog('success', '✔ Library updated successfully');
+        finishExplicitSummary();
         // v1.1.8 FEAT-13 — batch flourish. Only when at least one track was
         // actually saved, so a fully-skipped ("already in library") run stays
         // silent rather than congratulating the user for doing nothing.
@@ -1510,6 +1608,9 @@
           status: 'resolving',
           retrying: false,
           trackData: data.track_data || activeTracks[trackKey]?.trackData,
+          // A retried song is resolved afresh and may land on another result,
+          // so the previous attempt's verdict must not outlive it.
+          explicitStatus: undefined,
         });
 
       } else if (name === 'track_resolved') {
@@ -1527,6 +1628,7 @@
           status: 'resolving',
           retrying: false,
           trackData: data.track_data || activeTracks[trackKey]?.trackData,
+          ...explicitStatusPatch(data),
         });
 
       } else if (name === 'track_download_attempt') {
@@ -1593,6 +1695,7 @@
           status: 'done',
           retrying: false,
           trackData: data.track_data || activeTracks[trackKey]?.trackData,
+          ...explicitStatusPatch(data),
         });
       } else if (name === 'track_failed') {
         addLog('error', `[FAIL] ${trackLabel} - ${data.error}`);
@@ -1614,6 +1717,7 @@
           status: 'skipped',
           retrying: false,
           trackData: data.track_data || activeTracks[trackKey]?.trackData,
+          ...explicitStatusPatch(data),
         });
       } else if (name === 'playlist_started') {
         addLog('info', `Creating playlist structure and syncing tracks: ${data.message}`);
@@ -2571,6 +2675,7 @@
       dismissedFailures = new Set();
       retryQueue = [];
       retryQueueTotal = 0;
+      resetExplicitSummary();
       shouldAutoScroll = true;
       addLog('info', `━━━ Building your music library ━━━`);
       addLog('info', `Searching best available source (lossless prioritized)...`);
@@ -3599,6 +3704,8 @@
             {:else}
               {@const state = activeTracks[trackKey]}
               {@const trackLabel = trackLabels[trackKey] || trackKey}
+              <!-- A failed song has no file, so its resolved verdict would describe nothing. -->
+              {@const explicitBadge = state?.explicitStatus && state.status !== 'failed' ? EXPLICIT_BADGES[state.explicitStatus] : null}
               {#if state}
                 <div class="track-row"
                   class:track-done={state.status === 'done'}
@@ -3607,8 +3714,16 @@
                   <div class="track-row-main">
                     <div class="track-row-head">
                       <span class="track-row-name">{trackLabel}</span>
+                      <!-- The listed flag gives way to the backend's verdict once one arrives,
+                           so a row never shows two marks that could disagree. -->
+                      {#if state.listedExplicit && !state.explicitStatus}
+                        <span class="explicit-badge is-explicit" role="img" title="Marked explicit" aria-label="Marked explicit">E</span>
+                      {/if}
                     </div>
                     <div class="track-row-side">
+                      {#if explicitBadge}
+                        <span class="explicit-badge {explicitBadge.kind}" role="img" title={explicitBadge.label} aria-label={explicitBadge.label}>{explicitBadge.text}</span>
+                      {/if}
                       <span class="track-row-status">{state.error || state.text}</span>
                     </div>
                   </div>
@@ -3631,6 +3746,34 @@
       {/if}
     </div>
     {/if}<!-- /activeTab !== 'library' -->
+
+    <!-- ── Explicit versions summary ───────────────────────────────────────────
+         Shown once a run ends, beside the failed panel: the two are what is left
+         to read about a finished batch. Hidden while a retry runs, because the
+         counts change when it lands. -->
+    {#if activeTab !== 'library' && explicitSummary && !isDownloading}
+    <div class="explicit-summary" class:above-failed={failedEntries.length > 0}>
+      <div class="explicit-summary-head">
+        <span class="explicit-summary-title">Explicit versions</span>
+        <span class="explicit-summary-line">{explicitSummary.line}</span>
+        {#if explicitSummary.cleanEdits.length > 0}
+          <button class="explicit-summary-toggle"
+            aria-expanded={cleanEditsExpanded}
+            aria-controls="explicit-clean-edits"
+            on:click={() => cleanEditsExpanded = !cleanEditsExpanded}>
+            {cleanEditsExpanded ? '▾' : '▸'} Clean edits ({explicitSummary.cleanEdits.length})
+          </button>
+        {/if}
+      </div>
+      {#if explicitSummary.cleanEdits.length > 0 && cleanEditsExpanded}
+        <ul class="explicit-summary-list" id="explicit-clean-edits" aria-label="Clean edits">
+          {#each explicitSummary.cleanEdits as edit (edit.key)}
+            <li>{edit.title}{edit.artist ? ` — ${edit.artist}` : ''}</li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+    {/if}<!-- /explicit summary -->
 
     <!-- ── Failed Tracks Panel (ST-4) ──────────────────────────────────────── -->
     {#if activeTab !== 'library' && failedEntries.length > 0}
@@ -5127,8 +5270,16 @@
                   }}
                   style="accent-color:var(--accent-color); width:14px; height:14px; flex-shrink:0;"
                 />
+                <!-- is_explicit is absent when the backend could not tell; only a definite true earns the mark -->
                 {#if album.artwork_url}
-                  <img src={album.artwork_url} alt="" style="width:36px; height:36px; border-radius:4px; object-fit:cover; flex-shrink:0;"/>
+                  <span class="discography-cover">
+                    <img src={album.artwork_url} alt="" style="width:36px; height:36px; border-radius:4px; object-fit:cover; flex-shrink:0;"/>
+                    {#if album.is_explicit === true}
+                      <span class="explicit-badge is-explicit on-cover" role="img" title="Explicit edition" aria-label="Explicit edition">E</span>
+                    {/if}
+                  </span>
+                {:else if album.is_explicit === true}
+                  <span class="explicit-badge is-explicit" role="img" title="Explicit edition" aria-label="Explicit edition">E</span>
                 {/if}
                 <div style="flex:1; min-width:0;">
                   <div style="font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{album.name}</div>
@@ -5167,6 +5318,7 @@
           dismissedFailures = new Set();
           retryQueue = [];
           retryQueueTotal = 0;
+          resetExplicitSummary();
           shouldAutoScroll = true;
           addLog('info', `━━━ Building your music library ━━━`);
           addLog('info', `Downloading ${albumUrls.length} release${albumUrls.length !== 1 ? 's' : ''} (lossless prioritized)...`);
@@ -5625,6 +5777,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    gap: 6px;
     min-width: 0;
   }
   .track-row-name {
@@ -5643,6 +5796,106 @@
     text-overflow: ellipsis;
     text-align: left;
     width: 100%;
+  }
+
+  /* ── Explicit versions: badges and batch summary ────────────────────────── */
+  .explicit-badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    padding: 2px 5px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    white-space: nowrap;
+    cursor: default;
+  }
+  /* The familiar advisory mark, white on near-black. The light border keeps it
+     visible on the dark themes, where a dark chip would otherwise sink in. */
+  .explicit-badge.is-explicit {
+    color: #fff;
+    background: #141414;
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+  .explicit-badge.is-clean-edit {
+    color: var(--warning-color);
+    background: rgba(250, 204, 21, 0.12);
+    border-color: rgba(250, 204, 21, 0.45);
+    letter-spacing: 0.03em;
+  }
+  .explicit-badge.is-unknown {
+    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.12);
+    border-color: rgba(148, 163, 184, 0.4);
+    cursor: help;
+  }
+  /* Artist page: the mark sits on the cover's corner. */
+  .discography-cover {
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+  }
+  .discography-cover img { display: block; }
+  .explicit-badge.on-cover {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+  .explicit-summary {
+    /* the bottom margin keeps the panel clear of the floating Log button; when
+       the failed panel follows, that panel carries the margin instead */
+    margin: 8px 0 64px;
+    padding: 7px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: var(--surface-color);
+    font-size: 12px;
+  }
+  .explicit-summary.above-failed { margin-bottom: 8px; }
+  .explicit-summary-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+  .explicit-summary-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .explicit-summary-line { color: var(--text-primary); }
+  .explicit-summary-toggle {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--warning-color);
+    background: transparent;
+    border: none;
+    padding: 0;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .explicit-summary-toggle:hover {
+    background: transparent;
+    color: var(--warning-color);
+    text-decoration: underline;
+  }
+  .explicit-summary-list {
+    margin: 4px 0 0;
+    padding: 0 0 0 16px;
+    max-height: 110px;
+    overflow-y: auto;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--text-secondary);
   }
   /* ── Sign-in prompt (v1.1.8 FEAT-8 Phase B) ─────────────────────────────── */
   .signin-banner {
