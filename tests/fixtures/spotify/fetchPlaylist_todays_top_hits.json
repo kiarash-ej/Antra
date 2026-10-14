@@ -1,0 +1,209 @@
+{
+ "_fixture_note": "Live response captured 2026-10-14 and trimmed to catalog fields. Anonymous fetchPlaylist (pathfinder v2) for Today's Top Hits, first three songs.",
+ "data": {
+  "playlistV2": {
+   "__typename": "Playlist",
+   "name": "Today’s Top Hits",
+   "content": {
+    "items": [
+     {
+      "itemV2": {
+       "__typename": "TrackResponseWrapper",
+       "data": {
+        "__typename": "Track",
+        "albumOfTrack": {
+         "artists": {
+          "items": [
+           {
+            "profile": {
+             "name": "Ashe"
+            },
+            "uri": "spotify:artist:6P5NO5hzJbuOqSdyPB7SJM"
+           }
+          ]
+         },
+         "coverArt": {
+          "sources": [
+           {
+            "height": 300,
+            "url": "https://i.scdn.co/image/ab67616d00001e020893a0c33fd4b8497b0ef2f6",
+            "width": 300
+           },
+           {
+            "height": 64,
+            "url": "https://i.scdn.co/image/ab67616d000048510893a0c33fd4b8497b0ef2f6",
+            "width": 64
+           },
+           {
+            "height": 640,
+            "url": "https://i.scdn.co/image/ab67616d0000b2730893a0c33fd4b8497b0ef2f6",
+            "width": 640
+           }
+          ]
+         },
+         "name": "Stop The Wedding!",
+         "uri": "spotify:album:4dem9qxmFf4RD6fqoCH6wc"
+        },
+        "artists": {
+         "items": [
+          {
+           "profile": {
+            "name": "Ashe"
+           },
+           "uri": "spotify:artist:6P5NO5hzJbuOqSdyPB7SJM"
+          }
+         ]
+        },
+        "contentRating": {
+         "label": "NONE"
+        },
+        "discNumber": 1,
+        "name": "Stop The Wedding!",
+        "playability": {
+         "playable": true,
+         "reason": "PLAYABLE"
+        },
+        "trackDuration": {
+         "totalMilliseconds": 198840
+        },
+        "trackNumber": 1,
+        "uri": "spotify:track:3zOYmiNOuyDL0ClxJcEJ0T"
+       }
+      }
+     },
+     {
+      "itemV2": {
+       "__typename": "TrackResponseWrapper",
+       "data": {
+        "__typename": "Track",
+        "albumOfTrack": {
+         "artists": {
+          "items": [
+           {
+            "profile": {
+             "name": "ADÉLA"
+            },
+            "uri": "spotify:artist:2qanRMyA5bNuTvz1dK45OP"
+           }
+          ]
+         },
+         "coverArt": {
+          "sources": [
+           {
+            "height": 300,
+            "url": "https://i.scdn.co/image/ab67616d00001e02ac9d5d5263e9f03802d6864c",
+            "width": 300
+           },
+           {
+            "height": 64,
+            "url": "https://i.scdn.co/image/ab67616d00004851ac9d5d5263e9f03802d6864c",
+            "width": 64
+           },
+           {
+            "height": 640,
+            "url": "https://i.scdn.co/image/ab67616d0000b273ac9d5d5263e9f03802d6864c",
+            "width": 640
+           }
+          ]
+         },
+         "name": "PRIMA",
+         "uri": "spotify:album:2yDFVH9CeOHt0sc9eI0aBs"
+        },
+        "artists": {
+         "items": [
+          {
+           "profile": {
+            "name": "ADÉLA"
+           },
+           "uri": "spotify:artist:2qanRMyA5bNuTvz1dK45OP"
+          }
+         ]
+        },
+        "contentRating": {
+         "label": "EXPLICIT"
+        },
+        "discNumber": 1,
+        "name": "Nicole Kidman",
+        "playability": {
+         "playable": true,
+         "reason": "PLAYABLE"
+        },
+        "trackDuration": {
+         "totalMilliseconds": 181270
+        },
+        "trackNumber": 2,
+        "uri": "spotify:track:70cHKK8bHAfJrOGVnfRG9J"
+       }
+      }
+     },
+     {
+      "itemV2": {
+       "__typename": "TrackResponseWrapper",
+       "data": {
+        "__typename": "Track",
+        "albumOfTrack": {
+         "artists": {
+          "items": [
+           {
+            "profile": {
+             "name": "Olivia Rodrigo"
+            },
+            "uri": "spotify:artist:1McMsnEElThX1knmY4oliG"
+           }
+          ]
+         },
+         "coverArt": {
+          "sources": [
+           {
+            "height": 300,
+            "url": "https://i.scdn.co/image/ab67616d00001e0279e480cbab8c7b86d277841a",
+            "width": 300
+           },
+           {
+            "height": 64,
+            "url": "https://i.scdn.co/image/ab67616d0000485179e480cbab8c7b86d277841a",
+            "width": 64
+           },
+           {
+            "height": 640,
+            "url": "https://i.scdn.co/image/ab67616d0000b27379e480cbab8c7b86d277841a",
+            "width": 640
+           }
+          ]
+         },
+         "name": "the cure",
+         "uri": "spotify:album:6zme2NwcaBxbn3mWOcMY8y"
+        },
+        "artists": {
+         "items": [
+          {
+           "profile": {
+            "name": "Olivia Rodrigo"
+           },
+           "uri": "spotify:artist:1McMsnEElThX1knmY4oliG"
+          }
+         ]
+        },
+        "contentRating": {
+         "label": "EXPLICIT"
+        },
+        "discNumber": 1,
+        "name": "the cure",
+        "playability": {
+         "playable": true,
+         "reason": "PLAYABLE"
+        },
+        "trackDuration": {
+         "totalMilliseconds": 297090
+        },
+        "trackNumber": 1,
+        "uri": "spotify:track:4EoJ151oQ5jY48z4RhSE96"
+       }
+      }
+     }
+    ],
+    "totalCount": 3
+   }
+  }
+ }
+}

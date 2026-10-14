@@ -10,6 +10,7 @@ import spotipy
 import requests
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth, SpotifyPKCE
 
+from antra.core.explicit_common import explicit_from_content_rating
 from antra.core.models import TrackMetadata, SpotifyLibrary, SpotifyPlaylistSummary
 
 logger = logging.getLogger(__name__)
@@ -702,6 +703,7 @@ class SpotifyClient:
                         duration_ms=int(duration_ms) if duration_ms else None,
                         track_number=v2_data.get("trackNumber"),
                         disc_number=v2_data.get("discNumber"),
+                        is_explicit=explicit_from_content_rating(v2_data.get("contentRating")),
                         spotify_id=tid
                     )
                     tracks.append(track_meta)
@@ -1177,6 +1179,7 @@ class SpotifyClient:
                     total_tracks=total_tracks,
                     duration_ms=t.get("duration_ms"),
                     isrc=None,
+                    is_explicit=t["explicit"] if isinstance(t.get("explicit"), bool) else None,
                     spotify_id=t["id"],
                     album_id=album_id,
                     spotify_url=f"https://open.spotify.com/track/{t['id']}",
@@ -1624,6 +1627,11 @@ class SpotifyClient:
                     if isinstance(a, dict)
                 ]
                 duration_ms = track.get("duration", {}).get("totalMilliseconds")
+                # getAlbum sends no externalIds today (checked 2026-10-14), so
+                # isrc is usually None here; it is read in case the query gains
+                # them, using the field name fetchLibraryTracks uses.
+                external_ids = track.get("externalIds")
+                isrc = external_ids.get("isrc") if isinstance(external_ids, dict) else None
                 result.append(TrackMetadata(
                     title=track.get("name", ""),
                     artists=artists or album_artists,
@@ -1636,6 +1644,10 @@ class SpotifyClient:
                     disc_number=track.get("discNumber") or 1,
                     total_tracks=total_tracks,
                     duration_ms=int(duration_ms) if duration_ms else None,
+                    isrc=isrc or None,
+                    # Without this every album song was "unknown", so the
+                    # resolver never held out for an explicit match on albums.
+                    is_explicit=explicit_from_content_rating(track.get("contentRating")),
                     artwork_url=artwork_url,
                     spotify_id=spotify_id,
                     available_markets=markets,

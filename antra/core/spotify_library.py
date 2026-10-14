@@ -22,6 +22,8 @@ from typing import Optional
 
 import requests
 
+from antra.core.explicit_common import explicit_from_content_rating
+
 logger = logging.getLogger(__name__)
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -692,6 +694,7 @@ class SpotifyLibraryClient:
         Uses the fetchLibraryTracks GraphQL query with pagination.
         Each item shape: {id, name, artists, album, album_id, duration_ms,
                           isrc, release_date, artwork_url, explicit}
+        where explicit is True, False or None (Spotify sent no rating).
         Calls page_callback(list_so_far) after each page (for progressive UI).
         """
         all_tracks: list = []
@@ -773,8 +776,8 @@ class SpotifyLibraryClient:
                     elif isinstance(album_date, str):
                         release_date = album_date
 
-                    content_rating = track.get("contentRating") or {}
-                    explicit = (content_rating.get("label") == "EXPLICIT") if isinstance(content_rating, dict) else False
+                    # True, False, or None when the field is missing (unknown, not clean).
+                    explicit = explicit_from_content_rating(track.get("contentRating"))
 
                     all_tracks.append({
                         "id": track_id,

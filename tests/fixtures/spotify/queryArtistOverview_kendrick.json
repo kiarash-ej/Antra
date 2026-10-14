@@ -1,0 +1,358 @@
+{
+ "_fixture_note": "Live response captured 2026-10-14 and trimmed to catalog fields. queryArtistOverview for Kendrick Lamar, data.artistUnion. The second GNX release (1Ss0ArMRr91m83mOgRBjSZ, the clean edition) was added to discography.albums from its own getAlbum response: the live page lists only the explicit edition.",
+ "data": {
+  "artistUnion": {
+   "__typename": "Artist",
+   "discography": {
+    "albums": {
+     "items": [
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e02e2a0a166493a2bde5480a420",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d00004851e2a0a166493a2bde5480a420",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b273e2a0a166493a2bde5480a420",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 22,
+           "month": 11,
+           "precision": "DAY",
+           "year": 2024
+          },
+          "id": "0hvT3yIEysuuvkK73vgdcW",
+          "name": "GNX",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 12
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:0hvT3yIEysuuvkK73vgdcW"
+         }
+        ]
+       }
+      },
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e027e5e269471fe4a43a42e2f15",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d000048517e5e269471fe4a43a42e2f15",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b2737e5e269471fe4a43a42e2f15",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 21,
+           "month": 11,
+           "precision": "DAY",
+           "year": 2024
+          },
+          "id": "1Ss0ArMRr91m83mOgRBjSZ",
+          "name": "GNX",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 12
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:1Ss0ArMRr91m83mOgRBjSZ"
+         }
+        ]
+       }
+      },
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e022e02117d76426a08ac7c174f",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d000048512e02117d76426a08ac7c174f",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b2732e02117d76426a08ac7c174f",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 13,
+           "month": 5,
+           "precision": "DAY",
+           "year": 2022
+          },
+          "id": "79ONNoS4M9tfIA1mYLBYVX",
+          "name": "Mr. Morale & The Big Steppers",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 19
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:79ONNoS4M9tfIA1mYLBYVX"
+         }
+        ]
+       }
+      },
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e02add9eb25744782c3717c9368",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d00004851add9eb25744782c3717c9368",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b273add9eb25744782c3717c9368",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 8,
+           "month": 12,
+           "precision": "DAY",
+           "year": 2017
+          },
+          "id": "4alcGHjstaALJHHiljfy3H",
+          "name": "DAMN. COLLECTORS EDITION.",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 14
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:4alcGHjstaALJHHiljfy3H"
+         }
+        ]
+       }
+      },
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e028b52c6b9bc4e43d873869699",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d000048518b52c6b9bc4e43d873869699",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b2738b52c6b9bc4e43d873869699",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 14,
+           "month": 4,
+           "precision": "DAY",
+           "year": 2017
+          },
+          "id": "4eLPsYPBmXABThSJ821sqY",
+          "name": "DAMN.",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 14
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:4eLPsYPBmXABThSJ821sqY"
+         }
+        ]
+       }
+      }
+     ],
+     "totalCount": 5
+    },
+    "compilations": {
+     "items": [],
+     "totalCount": 0
+    },
+    "singles": {
+     "items": [
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e021ea0c62b2339cbf493a999ad",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d000048511ea0c62b2339cbf493a999ad",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b2731ea0c62b2339cbf493a999ad",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 4,
+           "month": 5,
+           "precision": "DAY",
+           "year": 2024
+          },
+          "id": "5JjnoGJyOxfSZUZtk2rRwZ",
+          "name": "Not Like Us",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 1
+          },
+          "type": "SINGLE",
+          "uri": "spotify:album:5JjnoGJyOxfSZUZtk2rRwZ"
+         }
+        ]
+       }
+      },
+      {
+       "releases": {
+        "items": [
+         {
+          "coverArt": {
+           "sources": [
+            {
+             "height": 300,
+             "url": "https://i.scdn.co/image/ab67616d00001e02bdc727cfc07ddbabf925bb2f",
+             "width": 300
+            },
+            {
+             "height": 64,
+             "url": "https://i.scdn.co/image/ab67616d00004851bdc727cfc07ddbabf925bb2f",
+             "width": 64
+            },
+            {
+             "height": 640,
+             "url": "https://i.scdn.co/image/ab67616d0000b273bdc727cfc07ddbabf925bb2f",
+             "width": 640
+            }
+           ]
+          },
+          "date": {
+           "day": 30,
+           "month": 4,
+           "precision": "DAY",
+           "year": 2024
+          },
+          "id": "32bR4LcEc1PvJEhaKoo4ZN",
+          "name": "euphoria",
+          "playability": {
+           "playable": true,
+           "reason": "PLAYABLE"
+          },
+          "tracks": {
+           "totalCount": 1
+          },
+          "type": "SINGLE",
+          "uri": "spotify:album:32bR4LcEc1PvJEhaKoo4ZN"
+         }
+        ]
+       }
+      }
+     ],
+     "totalCount": 2
+    }
+   },
+   "id": "2YZyLoL8N0Wb9xBt1NhZWg",
+   "profile": {
+    "name": "Kendrick Lamar"
+   },
+   "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+   "visuals": {
+    "avatarImage": {
+     "sources": [
+      {
+       "height": 640,
+       "url": "https://i.scdn.co/image/ab6761610000e5eb39ba6dcd4355c03de0b50918",
+       "width": 640
+      },
+      {
+       "height": 160,
+       "url": "https://i.scdn.co/image/ab6761610000f17839ba6dcd4355c03de0b50918",
+       "width": 160
+      },
+      {
+       "height": 320,
+       "url": "https://i.scdn.co/image/ab6761610000517439ba6dcd4355c03de0b50918",
+       "width": 320
+      }
+     ]
+    }
+   }
+  }
+ }
+}
