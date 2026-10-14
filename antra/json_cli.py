@@ -216,11 +216,25 @@ def emit_event(event: EngineEvent):
             "source": event.source,
             "error": event.error,
             "quality_label": event.quality_label,
+            "explicit_status": event.explicit_status,
             "attempt": event.attempt,
             "track_data": track_payload,
         }
     }
     print(json.dumps(data), flush=True)
+
+def _playlist_track_entry(track: TrackMetadata) -> dict:
+    """One song in a playlist_loaded / tracks_appended list.
+
+    `explicit` is Spotify's own flag (true, false or null), so the list can
+    badge explicit songs before anything is downloaded.
+    """
+    return {
+        "artist": track.artist_string,
+        "title": track.title,
+        "duration_ms": track.duration_ms or 0,
+        "explicit": track.is_explicit,
+    }
 
 def emit_progress(progress: BulkDownloadProgress):
     data = {
@@ -3112,18 +3126,12 @@ def main():
                         "release_date": _format_track_release_date(tracks_so_far),
                         "quality_badge": _quality_badge_map.get(cfg.output_format or '', ''),
                         "track_count": len(tracks_so_far),
-                        "tracks": [
-                            {"artist": t.artist_string, "title": t.title, "duration_ms": t.duration_ms or 0}
-                            for t in tracks_so_far
-                        ],
+                        "tracks": [_playlist_track_entry(t) for t in tracks_so_far],
                     }), flush=True)
                 else:
                     print(json.dumps({
                         "type": "tracks_appended",
-                        "tracks": [
-                            {"artist": t.artist_string, "title": t.title, "duration_ms": t.duration_ms or 0}
-                            for t in new_tracks
-                        ],
+                        "tracks": [_playlist_track_entry(t) for t in new_tracks],
                     }), flush=True)
                 _page_state["sent"] = len(tracks_so_far)
 
@@ -3158,14 +3166,7 @@ def main():
                     "release_date": _format_track_release_date(tracks),
                     "quality_badge": _quality_badge_map.get(cfg.output_format or '', ''),
                     "track_count": len(tracks),
-                    "tracks": [
-                        {
-                            "artist": t.artist_string,
-                            "title": t.title,
-                            "duration_ms": t.duration_ms or 0,
-                        }
-                        for t in tracks
-                    ],
+                    "tracks": [_playlist_track_entry(t) for t in tracks],
                 }), flush=True)
 
             tracks = service.enrich_tracks_for_download(tracks, url, options=options)

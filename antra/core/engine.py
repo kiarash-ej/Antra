@@ -16,8 +16,9 @@ from mutagen import File as MutagenFile
 
 from antra.core.control import DownloadController
 from antra.core.events import EngineEvent, EngineEventType
+from antra.core.explicit_common import explicit_status
 from antra.core.models import AudioFormat, TrackMetadata, DownloadResult, DownloadStatus
-from antra.core.resolver import SourceResolver
+from antra.core.resolver import SourceResolver, effective_target_explicit
 from antra.sources.base import RateLimitedError
 from antra.utils.matching import duration_close
 from antra.utils.lyrics import LyricsFetcher
@@ -198,6 +199,26 @@ class DownloadEngine:
             track.synced_lyrics = synced
         except Exception as e:
             logger.debug(f"  ℹ  Lyrics fetch failed: {e}")
+
+    def _write_explicit_advisory(self, file_path: str, status: Optional[str]) -> None:
+        """Stamp the iTunes advisory matching the song's explicit status.
+
+        Only with "Prefer explicit versions" on, which the engine reads from its
+        resolver (the service builds both from the same config). The tagger
+        call never raises; the guards are for a tagger without the function and
+        for anything unexpected, since a flag must never fail a finished file.
+        """
+        if getattr(self.resolver, "prefer_explicit", False) is not True:
+            return
+        try:
+            from antra.utils.tagger import write_explicit_advisory
+        except ImportError:
+            return
+        try:
+            if not write_explicit_advisory(file_path, status):
+                logger.debug(f"  [TAG]  Explicit advisory not written for {file_path}")
+        except Exception as e:
+            logger.debug(f"  [TAG]  Explicit advisory failed for {file_path}: {e}")
 
     @staticmethod
     def _enrich_genres_if_needed(track: TrackMetadata) -> None:
@@ -927,6 +948,13 @@ class DownloadEngine:
     ) -> DownloadResult:
         """Full pipeline for a single track."""
 
+        # Read once, before anything can touch the track: the post-download
+        # enricher fills a missing is_explicit from the winning source, which
+        # would otherwise judge that source against its own flag.
+        explicit_target = effective_target_explicit(track)
+        requested_is_explicit = track.is_explicit
+        requested_title = track.title
+
         # 1. Resume check — only skip if the existing file meets the current output format.
         existing = self.organizer.is_already_downloaded(track)
         if existing:
@@ -966,6 +994,8 @@ class DownloadEngine:
                     track_total=track_total,
                     file_path=existing,
                     message="Track already exists on disk.",
+                    # No source result to judge, so the song's own flag stands in.
+                    explicit_status=explicit_status(explicit_target, track.is_explicit, track.title),
                 )
                 return DownloadResult(
                     track=track,
@@ -1072,6 +1102,15 @@ class DownloadEngine:
                 )
 
             result, adapter = resolution
+            # Per resolution: a failed download re-resolves to another copy.
+            song_explicit_status = explicit_status(
+                explicit_target,
+                result.is_explicit,
+                result.title,
+                original_title=requested_title,
+                isrc_match=bool(getattr(result, "isrc_match", False)),
+                original_is_explicit=requested_is_explicit,
+            )
             # Track if we ended up using a lossy source in lossless-prefer mode
             # (so we can emit a post-download warning). The resolver already handles
             # the "prefer lossless, fall back to lossy as last resort" logic.
@@ -1095,6 +1134,7 @@ class DownloadEngine:
                 source=adapter.name,
                 quality_label=result.quality_label,
                 message=f"Resolved via {adapter.name}",
+                explicit_status=song_explicit_status,
             )
 
             file_path: Optional[str] = None
@@ -1335,6 +1375,9 @@ class DownloadEngine:
                         f"  [WARN]  Metadata tagging did not complete for {file_path}. "
                         "This usually means the output container is unsupported for embedded tags."
                     )
+                # On the final file: conversion and the main tag pass are done,
+                # so nothing later rewrites the tags it lands in.
+                self._write_explicit_advisory(file_path, song_explicit_status)
                 if self.cfg.save_cover_art_sidecar:
                     self.tagger.save_cover_art_sidecar(file_path, track)
 
@@ -1383,6 +1426,7 @@ class DownloadEngine:
                     source=adapter.name,
                     file_path=file_path,
                     quality_label=completed_quality_label,
+                    explicit_status=song_explicit_status,
                 )
                 return DownloadResult(
                     track=track,

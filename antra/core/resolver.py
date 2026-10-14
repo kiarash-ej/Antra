@@ -16,6 +16,7 @@ import time
 from collections import defaultdict
 from typing import Optional
 
+from antra.core.explicit_common import looks_clean
 from antra.core.models import TrackMetadata, SearchResult
 from antra.sources.base import BaseSourceAdapter, RateLimitedError
 from antra.utils.matching import duration_close, version_mismatch
@@ -42,6 +43,23 @@ _CLEAN_VERSION_RE = re.compile(
     r"\b(radio\s*edit|clean(\s+(version|edit|mix))?|edited(\s+version)?|censored)\b",
     re.IGNORECASE,
 )
+
+
+def effective_target_explicit(track: Optional[TrackMetadata]) -> Optional[bool]:
+    """Whether the download should be explicit: True, False or None (unknown).
+
+    The twin step sets `target_explicit` before resolving. Songs it never
+    touches (Apple, Amazon and Deezer links, or the setting off) leave it None,
+    and a song already flagged explicit still wants its explicit copy. A clean
+    flag alone stays unknown: Apple storefronts list only the clean edition of
+    some songs that do have an explicit one.
+    """
+    if track is None:
+        return None
+    target = getattr(track, "target_explicit", None)
+    if target is None and getattr(track, "is_explicit", None) is True:
+        return True
+    return target
 
 
 class SourceResolver:
@@ -543,6 +561,8 @@ class SourceResolver:
         """
         Sort key for comparing lossless results across adapters.
         Priority (highest first):
+          0. explicit rank (see _explicit_rank): constant unless prefer_explicit
+             is on and the song should be explicit.
           1. native_source_match: in lossless mode, tracks with prefer_hires/exclusive
              intent get first shot on their own platform adapter.
           2. quality_tier — in 16-bit mode, 16-bit lossless ranks above 24-bit;
@@ -586,6 +606,7 @@ class SourceResolver:
             effective_sample_rate = 44100
         native_source_match = int(self._prefer_native_lossless_source(track, adapter))
         return (
+            self._explicit_rank(track, result),
             native_source_match,
             quality_rank,
             source_match,
@@ -634,6 +655,30 @@ class SourceResolver:
 
         return 0.0
 
+    def _explicit_rank_active(self, track: Optional[TrackMetadata]) -> bool:
+        """True when results for this song are ranked by explicitness first."""
+        return bool(self.prefer_explicit) and effective_target_explicit(track) is True
+
+    def _explicit_rank(self, track: Optional[TrackMetadata], result: SearchResult) -> int:
+        """First element of both sort keys: explicit 2, unknown 1, clean 0.
+
+        The 0.20 similarity penalty in _explicit_penalty sits behind quality in
+        the keys, so a hi-res clean copy still beat a 16-bit explicit one.
+        Ranking explicitness ahead of quality is what makes the setting hold.
+        When the rank is inactive every result gets the same value, so the keys
+        keep their length and order exactly as before.
+        """
+        if not self._explicit_rank_active(track):
+            return 0
+        if result.is_explicit is True:
+            return 2
+        if result.is_explicit is False:
+            return 0
+        # Unflagged, but titled as a clean edition the requested song is not.
+        if looks_clean(result.title) and not looks_clean(track.title):
+            return 0
+        return 1
+
     def _track_wants_hires(self, track: TrackMetadata) -> bool:
         """Return True if Apple Music reports the track is available in hi-res lossless.
         Used to keep searching past a 16-bit lossless result in quality-aware mode."""
@@ -644,7 +689,7 @@ class SourceResolver:
         result: SearchResult,
         adapter: BaseSourceAdapter,
         track: Optional[TrackMetadata] = None,
-    ) -> tuple[float, int, int, int, float, int]:
+    ) -> tuple[int, float, int, int, int, float, int]:
         similarity = result.similarity_score
         if self._is_quality_aware_mode() and adapter.name == "youtube":
             similarity -= 0.10
@@ -658,6 +703,7 @@ class SourceResolver:
             if not self._is_lossless16_mode() and self._track_wants_hires(track) and self._quality_tier(result, adapter) >= 4:
                 similarity += 0.05
         return (
+            self._explicit_rank(track, result),
             float(self._quality_tier(result, adapter)),
             result.sample_rate_hz or 0,
             result.quality_kbps or 0,
@@ -701,7 +747,7 @@ class SourceResolver:
         # when the target track is known to be explicit. Many normal catalog tracks
         # are genuinely non-explicit; rejecting those made Tidal-only lossless-16
         # resolution find a FLAC candidate and then fail before download.
-        if result.is_explicit is False and track.is_explicit is True:
+        if result.is_explicit is False and effective_target_explicit(track) is True:
             return True
         if _CLEAN_VERSION_RE.search(result.title) and not _CLEAN_VERSION_RE.search(track.title):
             return True
@@ -1042,9 +1088,14 @@ class SourceResolver:
                         self._meets_quality_aware_threshold(result, adapter)
                         or (prefer_native_lossless and result.is_lossless)
                     )
+                    result_looks_clean = self._result_looks_clean(track, result)
+                    # With the explicit rank on, a clean copy stays a candidate:
+                    # the rank already sorts it below any explicit or unknown
+                    # copy, and dropping it would fail a song that no source has
+                    # in explicit instead of downloading the clean edit.
                     if (
                         quality_ok
-                        and not self._result_looks_clean(track, result)
+                        and (not result_looks_clean or self._explicit_rank_active(track))
                         and self._passes_identity_gate(track, result)
                         and self._passes_strict_identity(track, result, adapter)
                     ):
@@ -1054,11 +1105,18 @@ class SourceResolver:
                             f"'{result.title}' {result.bit_depth or '?'}bit/"
                             f"{result.sample_rate_hz or '?'}Hz ({result.quality_label})"
                         )
-                        if self._is_lossless16_mode() and adapter.name in {"deezer", "deezer_mirror"}:
+                        # Neither shortcut below may stop the search on a clean
+                        # copy while an explicit one is wanted.
+                        if (
+                            self._is_lossless16_mode()
+                            and adapter.name in {"deezer", "deezer_mirror"}
+                            and not result_looks_clean
+                        ):
                             logger.info("[Resolver] 16-bit mode: Deezer found the track — skipping 24-bit sources")
                             break
                         if (
-                            preferred_album_adapter
+                            not result_looks_clean
+                            and preferred_album_adapter
                             and adapter.name == preferred_album_adapter
                             and (
                                 self._quality_tier(result, adapter) >= 4
@@ -1084,7 +1142,14 @@ class SourceResolver:
 
             # ── Lossy-preferred mode (mp3/aac) ────────────────────────────────
             if self._is_lossy_preferred_mode():
-                if not result.is_lossless and self._passes_identity_gate(track, result):
+                # A clean copy of a song wanted explicit is not taken on the
+                # spot. It stays in `candidates`, where the post-loop ranking
+                # picks it only if no source has anything closer.
+                defer_clean = (
+                    self._explicit_rank_active(track)
+                    and self._result_looks_clean(track, result)
+                )
+                if not result.is_lossless and not defer_clean and self._passes_identity_gate(track, result):
                     # Native lossy result — accept it if score is good enough, even when
                     # the adapter can also return lossless on other tracks (e.g. Amazon).
                     if result.isrc_match and self._meets_quality_aware_threshold(result, adapter):

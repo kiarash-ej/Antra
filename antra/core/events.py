@@ -32,3 +32,6 @@ class EngineEvent:
     attempt: Optional[int] = None
     file_path: Optional[str] = None
     error: Optional[str] = None
+    # One of the STATUS_* values in explicit_common, for the copy actually
+    # chosen: the track payload only says what was asked for.
+    explicit_status: Optional[str] = None
