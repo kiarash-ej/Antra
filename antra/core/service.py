@@ -12,6 +12,7 @@ from antra.core.config import Config, load_config
 from antra.core.control import DownloadController
 from antra.core.engine import DownloadEngine, EngineConfig
 from antra.core.events import EngineEvent
+from antra.core.explicit_twin import apply_explicit_targets
 from antra.core.spotify import SpotifyAvailabilityError, SpotifyResourceError
 from antra.core.models import (
     BulkDownloadProgress,
@@ -2112,6 +2113,11 @@ class AntraService:
     ) -> list[DownloadResult]:
         cfg = self.build_runtime_config(options)
         engine = self.build_engine(cfg, event_callback=event_callback, controller=controller, organizer=organizer)
+        # Every download path (pasted links, library selections, auto-sync,
+        # retries) hands its batch to the engine here, so explicit targets and
+        # twin swaps are decided once per batch, after the track list has been
+        # shown and before anything resolves.
+        apply_explicit_targets(tracks, cfg)
         return engine.download_playlist(tracks)
 
     def download_playlist(

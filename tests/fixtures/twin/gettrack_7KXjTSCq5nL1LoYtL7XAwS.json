@@ -1,0 +1,56 @@
+{
+  "data": {
+    "trackUnion": {
+      "__typename": "Track",
+      "contentRating": {
+        "label": "EXPLICIT"
+      },
+      "contentRatingV2": {
+        "labels": [
+          "EXPLICIT"
+        ]
+      },
+      "duration": {
+        "totalMilliseconds": 177000
+      },
+      "id": "7KXjTSCq5nL1LoYtL7XAwS",
+      "mediaType": "AUDIO",
+      "name": "HUMBLE.",
+      "playability": {
+        "playable": true,
+        "reason": "PLAYABLE"
+      },
+      "trackNumber": 8,
+      "uri": "spotify:track:7KXjTSCq5nL1LoYtL7XAwS",
+      "albumOfTrack": {
+        "id": "4eLPsYPBmXABThSJ821sqY",
+        "name": "DAMN.",
+        "type": "ALBUM",
+        "uri": "spotify:album:4eLPsYPBmXABThSJ821sqY",
+        "date": {
+          "isoString": "2017-04-14T00:00:00Z",
+          "precision": "DAY",
+          "year": 2017
+        },
+        "tracks": {
+          "totalCount": 14
+        }
+      },
+      "firstArtist": {
+        "items": [
+          {
+            "id": "2YZyLoL8N0Wb9xBt1NhZWg",
+            "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+            "profile": {
+              "name": "Kendrick Lamar"
+            }
+          }
+        ],
+        "totalCount": 1
+      },
+      "otherArtists": {
+        "items": []
+      }
+    }
+  }
+}

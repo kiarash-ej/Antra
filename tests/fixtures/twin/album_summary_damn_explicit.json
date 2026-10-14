@@ -1,0 +1,186 @@
+{
+  "id": "4eLPsYPBmXABThSJ821sqY",
+  "name": "DAMN.",
+  "type": "album",
+  "year": 2017,
+  "track_count": 14,
+  "artist_ids": [
+    "2YZyLoL8N0Wb9xBt1NhZWg"
+  ],
+  "edition_ids": [
+    "0bLXUfNT34mna9aXq8ex68"
+  ],
+  "tracks": [
+    {
+      "id": "1n4jwRVXdkK2U34nBDUKKT",
+      "name": "BLOOD.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 118066,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 1
+    },
+    {
+      "id": "6HZILIRieu8S0iqY8kIKhj",
+      "name": "DNA.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 185946,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 2
+    },
+    {
+      "id": "4BHSjbYylfOH5WAGusDyni",
+      "name": "YAH.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 160293,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 3
+    },
+    {
+      "id": "1EaKU4dMbesXXd3BrLCtYG",
+      "name": "ELEMENT.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 208733,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 4
+    },
+    {
+      "id": "2LTlO3NuNVN70lp2ZbVswF",
+      "name": "FEEL.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 214826,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 5
+    },
+    {
+      "id": "6SwRhMLwNqEi6alNPVG00n",
+      "name": "LOYALTY. FEAT. RIHANNA.",
+      "artists": [
+        "Kendrick Lamar",
+        "Rihanna"
+      ],
+      "duration_ms": 227360,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 6
+    },
+    {
+      "id": "6IZvVAP7VPPnsGX6bvgkqg",
+      "name": "PRIDE.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 275253,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 7
+    },
+    {
+      "id": "7KXjTSCq5nL1LoYtL7XAwS",
+      "name": "HUMBLE.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 177000,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 8
+    },
+    {
+      "id": "06FCvd7rrRcF3DdvWH5Isp",
+      "name": "LUST.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 307880,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 9
+    },
+    {
+      "id": "6PGoSes0D9eUDeeAafB2As",
+      "name": "LOVE. FEAT. ZACARI.",
+      "artists": [
+        "Kendrick Lamar",
+        "Zacari"
+      ],
+      "duration_ms": 213400,
+      "isrc": null,
+      "explicit": false,
+      "disc_number": 1,
+      "track_number": 10
+    },
+    {
+      "id": "4iYRa2btalAzPZoSYfROqF",
+      "name": "XXX. FEAT. U2.",
+      "artists": [
+        "Kendrick Lamar",
+        "U2"
+      ],
+      "duration_ms": 254200,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 11
+    },
+    {
+      "id": "23luOrEVHMfoX0AhfbQuS6",
+      "name": "FEAR.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 460573,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 12
+    },
+    {
+      "id": "5p3NP9mQblDsVJLdfNZJ3I",
+      "name": "GOD.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 248826,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 13
+    },
+    {
+      "id": "0y9uTzK9cNKSAEHnpeRG8C",
+      "name": "DUCKWORTH.",
+      "artists": [
+        "Kendrick Lamar"
+      ],
+      "duration_ms": 248613,
+      "isrc": null,
+      "explicit": true,
+      "disc_number": 1,
+      "track_number": 14
+    }
+  ]
+}

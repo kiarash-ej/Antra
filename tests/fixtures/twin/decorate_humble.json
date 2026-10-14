@@ -1,0 +1,81 @@
+{
+  "data": {
+    "tracks": [
+      {
+        "__typename": "Track",
+        "uri": "spotify:track:7KXjTSCq5nL1LoYtL7XAwS",
+        "name": "HUMBLE.",
+        "contentRating": {
+          "label": "EXPLICIT"
+        },
+        "duration": {
+          "totalMilliseconds": 177000
+        },
+        "artists": {
+          "items": [
+            {
+              "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+              "profile": {
+                "name": "Kendrick Lamar"
+              }
+            }
+          ]
+        },
+        "albumOfTrack": {
+          "name": "DAMN.",
+          "uri": "spotify:album:4eLPsYPBmXABThSJ821sqY"
+        }
+      },
+      {
+        "__typename": "Track",
+        "uri": "spotify:track:131OLY5J8XyfGuSjXRiTRM",
+        "name": "HUMBLE.",
+        "contentRating": {
+          "label": "NONE"
+        },
+        "duration": {
+          "totalMilliseconds": 177000
+        },
+        "artists": {
+          "items": [
+            {
+              "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+              "profile": {
+                "name": "Kendrick Lamar"
+              }
+            }
+          ]
+        },
+        "albumOfTrack": {
+          "name": "DAMN.",
+          "uri": "spotify:album:0bLXUfNT34mna9aXq8ex68"
+        }
+      },
+      {
+        "__typename": "Track",
+        "uri": "spotify:track:3UHm2lhVeuywLXRAXEdUYW",
+        "name": "HUMBLE.",
+        "contentRating": {
+          "label": "NONE"
+        },
+        "duration": {
+          "totalMilliseconds": 177000
+        },
+        "artists": {
+          "items": [
+            {
+              "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+              "profile": {
+                "name": "Kendrick Lamar"
+              }
+            }
+          ]
+        },
+        "albumOfTrack": {
+          "name": "DAMN. COLLECTORS EDITION.",
+          "uri": "spotify:album:1LLOGSa5ehwSWrPg1Qc3Vg"
+        }
+      }
+    ]
+  }
+}

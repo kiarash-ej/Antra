@@ -1,0 +1,68 @@
+{
+  "data": {
+    "searchV2": {
+      "artists": {
+        "items": [
+          {
+            "data": {
+              "uri": "spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg"
+            }
+          }
+        ]
+      },
+      "albumsV2": {
+        "items": [
+          {
+            "data": {
+              "uri": "spotify:album:1X4aaOIXvs6gWtQZQpln4V"
+            }
+          },
+          {
+            "data": {
+              "uri": "spotify:album:4eLPsYPBmXABThSJ821sqY"
+            }
+          }
+        ]
+      },
+      "tracksV2": {
+        "items": [
+          {
+            "item": {
+              "data": {
+                "uri": "spotify:track:7KXjTSCq5nL1LoYtL7XAwS"
+              }
+            }
+          },
+          {
+            "item": {
+              "data": {
+                "uri": "spotify:track:131OLY5J8XyfGuSjXRiTRM"
+              }
+            }
+          },
+          {
+            "item": {
+              "data": {
+                "uri": "spotify:track:3UHm2lhVeuywLXRAXEdUYW"
+              }
+            }
+          },
+          {
+            "item": {
+              "data": {
+                "uri": "spotify:track:6g6W3pMAFbp2FS1QCijkpM"
+              }
+            }
+          },
+          {
+            "item": {
+              "data": {
+                "uri": "spotify:track:5KWwD9LzZa6ruNYGNqAqoN"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
