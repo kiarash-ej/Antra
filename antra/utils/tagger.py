@@ -10,6 +10,7 @@ from io import BytesIO
 from typing import Optional
 
 import requests
+from mutagen import File as MutagenFile
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import (
     ID3,
@@ -32,12 +33,16 @@ from mutagen.id3 import (
 )
 from mutagen.mp4 import MP4, MP4Cover, MP4FreeForm
 from mutagen.mp3 import MP3
+from mutagen.oggflac import OggFLAC
+from mutagen.oggopus import OggOpus
+from mutagen.oggvorbis import OggVorbis
 from antra.utils.lyrics import validate_and_strip_lrc, lrc_to_sylt_frames
 try:
     from PIL import Image
 except ImportError:
     Image = None
 
+from antra.core.explicit_common import advisory_value
 from antra.core.models import TrackMetadata
 
 from antra.utils.longpath import extended_path
@@ -588,3 +593,109 @@ class FileTagger:
         except Exception as e:
             from logging import getLogger
             getLogger(__name__).warning(f"[Tagger] Failed to embed lyrics into {path}: {e}")
+
+
+# ── Explicit advisory ─────────────────────────────────────────────────────
+
+# The iTunes content-advisory tag, which Apple Music, foobar2000, MusicBee and
+# Plex read as the explicit flag. The same name serves as the Vorbis comment key
+# and the ID3 TXXX description; MP4 has its own `rtng` atom.
+_ADVISORY_KEY = "ITUNESADVISORY"
+
+# An ".ogg" can hold Vorbis, Opus or FLAC, so mutagen picks the reader from the
+# stream header instead of trusting the extension.
+_OGG_TYPES = [OggVorbis, OggOpus, OggFLAC]
+
+
+def write_explicit_advisory(file_path: str, status: Optional[str]) -> bool:
+    """Write the iTunes advisory for an explicit status: 1 explicit, 2 clean edit.
+
+    Any other status removes an advisory the file already carries, because a
+    source can ship its own flag and a re-download must not keep a stale one.
+    Returns True when the file now holds the right value (nothing to remove
+    counts), False for a format without an advisory tag or a file mutagen
+    cannot read or save. Never raises: like the provenance tags, the flag is a
+    convenience and must not be able to fail an otherwise good download.
+    """
+    value = advisory_value(status)
+    file_path = extended_path(file_path)
+    ext = os.path.splitext(file_path)[1].lower()
+    try:
+        if ext == ".flac":
+            audio = FLAC(file_path)
+            if _set_vorbis_advisory(audio, value):
+                audio.save()
+        elif ext in {".ogg", ".opus"}:
+            audio = MutagenFile(file_path, options=_OGG_TYPES)
+            if audio is None:
+                logger.debug(f"[Tagger] No Ogg stream in {file_path}, explicit advisory not written")
+                return False
+            if _set_vorbis_advisory(audio, value):
+                audio.save()
+        elif ext == ".mp3":
+            # MP3() rather than the bare ID3() the other passes use: it refuses a
+            # file with no MPEG audio instead of prepending a tag to it.
+            audio = MP3(file_path)
+            if _set_id3_advisory(audio, value):
+                # ID3v2.3, as `_tag_mp3` saves, so this pass does not undo it.
+                audio.save(v1=2, v2_version=3)
+        elif ext in {".m4a", ".mp4"}:
+            audio = MP4(file_path)
+            if _set_mp4_advisory(audio, value):
+                audio.save()
+        else:
+            logger.debug(f"[Tagger] Unsupported format for explicit advisory: {ext}")
+            return False
+        return True
+    except Exception as e:
+        logger.debug(f"[Tagger] Could not write explicit advisory to {file_path}: {e}")
+        return False
+
+
+def _set_vorbis_advisory(audio, value: Optional[int]) -> bool:
+    """Set or clear the advisory comment; True when the tags changed.
+
+    Vorbis comment keys are case-insensitive, so this also replaces or removes
+    an "iTunesAdvisory" written by another tool.
+    """
+    if value is not None:
+        audio[_ADVISORY_KEY] = [str(value)]
+        return True
+    if audio.tags is not None and _ADVISORY_KEY in audio.tags:
+        del audio.tags[_ADVISORY_KEY]
+        return True
+    return False
+
+
+def _set_id3_advisory(audio: MP3, value: Optional[int]) -> bool:
+    """Set or clear the advisory TXXX frame; True when the tags changed."""
+    tags = audio.tags
+    # TXXX descriptions are case-sensitive, so every spelling of the key is
+    # cleared, not just the one written here; otherwise a file could end up
+    # with two advisories that disagree.
+    stale = [] if tags is None else [
+        frame.HashKey for frame in tags.getall("TXXX") if frame.desc.upper() == _ADVISORY_KEY
+    ]
+    for key in stale:
+        del tags[key]
+    if value is None:
+        return bool(stale)
+    if tags is None:
+        audio.add_tags()
+        tags = audio.tags
+    tags.add(TXXX(encoding=3, desc=_ADVISORY_KEY, text=str(value)))
+    return True
+
+
+def _set_mp4_advisory(audio: MP4, value: Optional[int]) -> bool:
+    """Set or clear the `rtng` atom; True when the tags changed.
+
+    Players read `rtng` as an integer, so it is stored as one, not as text.
+    """
+    if value is not None:
+        audio["rtng"] = [value]
+        return True
+    if audio.tags is not None and "rtng" in audio.tags:
+        del audio.tags["rtng"]
+        return True
+    return False
