@@ -68,7 +68,9 @@ Found by reading the upstream source:
 ### 1. Read the flag everywhere
 
 - `_fetch_album_via_partner_api` reads each song's `contentRating.label`
-  (`"EXPLICIT"` is explicit; any other value, or none, is clean) and its
+  (`"EXPLICIT"` is explicit; any other label is clean; a missing field is
+  unknown, so a response without it does not send every song into a twin
+  search) and its
   `externalIds.isrc` when present. `spotify_library.py` already parses
   `contentRating` this way for Liked Songs; the parsing moves into one shared
   helper used by both.

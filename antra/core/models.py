@@ -61,6 +61,10 @@ class TrackMetadata:
     artwork_url: Optional[str] = None  # Highest res from Spotify
     playlist_artwork_url: Optional[str] = None  # Playlist-level cover (distinct from track album art)
     is_explicit: Optional[bool] = None  # True = explicit, False = clean/edited, None = unknown
+    # What the download should be: True when this song or its Spotify twin is
+    # explicit, False when Spotify confirmed no explicit version exists, None
+    # when unknown. Set by explicit_twin; read by the resolver and the status.
+    target_explicit: Optional[bool] = None
     available_markets: list[str] = field(default_factory=list)  # Spotify album markets from the full album object
     available_in_market: Optional[bool] = None  # Availability of the album in cfg.spotify_market (or US fallback)
     availability_note: Optional[str] = None  # Human-readable market restriction note
